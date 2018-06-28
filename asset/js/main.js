@@ -49,14 +49,19 @@ function create() {
   pipes = game.add.physicsGroup();
 
   timer = game.time.events.loop(2000, addPipe, this);
-  score = -3;
-  labelScore = game.add.text(400, 20, "0",
+  score = 0;
+  labelScore = game.add.text(20, 20, "0",
     { font: "30px Arial", fill: "#ffffff" });
 }
 
 function update() {
   game.physics.arcade.collide(bird, ground, null, null, this);
   game.physics.arcade.collide(bird, pipes, hitPipe, null, this);
+  pipes.forEachAlive(function(pipe){
+    if (!pipe.scored && pipe.x <= bird.x) {
+      updateScore(pipe);
+    }
+  })
 }
 
 
@@ -65,6 +70,11 @@ function render() {
 }
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
+function updateScore(pipe) {
+  pipe.scored = true;
+  score += 0.5;
+  labelScore.text = score;
+}
 function hitPipe(bird, pipe) {
   // If the bird has already hit a pipe, do nothing
    // It means the bird is already falling off the screen
@@ -88,10 +98,6 @@ function restartGame() {
 }
 
 function addPipe() {
-  score++;
-  if (score > 0)
-    labelScore.text = score;
-  else labelScore.text = 0;
   var offset = 200 + Math.floor(Math.random() * 200);
   var pipeUp = game.add.sprite(800, offset + 100, 'pipeUp');
   var pipeDown = game.add.sprite(800, offset - 400, 'pipeDown');
