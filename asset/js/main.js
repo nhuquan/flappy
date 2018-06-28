@@ -11,7 +11,8 @@ function preload() {
 
   game.load.image('sky', 'asset/images/sprites/background-night.png');
   game.load.image('ground', 'asset/images/sprites/base.png');
-  game.load.image('pipe', 'asset/images/sprites/pipe-green.png')
+  game.load.image('pipeUp', 'asset/images/sprites/pipe-up.png');
+  game.load.image('pipeDown', 'asset/images/sprites/pipe-down.png');
   game.load.spritesheet('bird', 'asset/images/sprites/bird.png',34,24);
 
 
@@ -47,11 +48,15 @@ function create() {
 
   pipes = game.add.physicsGroup();
 
-  game.time.events.loop(1500, addPipe, this);
+  timer = game.time.events.loop(2000, addPipe, this);
+  score = -3;
+  labelScore = game.add.text(400, 20, "0",
+    { font: "30px Arial", fill: "#ffffff" });
 }
 
 function update() {
-  game.physics.arcade.collide(bird,ground);
+  game.physics.arcade.collide(bird, ground, null, null, this);
+  game.physics.arcade.collide(bird, pipes, hitPipe, null, this);
 }
 
 
@@ -60,24 +65,60 @@ function render() {
 }
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++//
-function addPipe() {
-  var offset = 200 + Math.floor(Math.random() * 200);
-  var pipeUp = game.add.sprite(800, offset + 100, 'pipe');
-  game.physics.arcade.enable(pipeUp);
-  pipeUp.body.allowGravity = false;
-  pipeUp.body.velocity.x = -200;
+function hitPipe(bird, pipe) {
+  // If the bird has already hit a pipe, do nothing
+   // It means the bird is already falling off the screen
+   if (bird.alive == false)
+       return;
 
-  var pipeDown = game.add.sprite(850, offset - 100, 'pipe');
-  pipeDown.angle += 180;
-  game.physics.arcade.enable(pipeDown);
-  pipeDown.body.allowGravity = false;
-  pipeDown.body.velocity.x = -200;
+   // Set the alive property of the bird to false
+   bird.alive = false;
+
+   // Prevent new pipes from appearing
+   game.time.events.remove(timer);
+
+   // Go through all the pipes, and stop their movement
+   pipes.forEach(function(p){
+       p.body.velocity.x = 0;
+   }, this);
+}
+
+function restartGame() {
+  game.state.restart();
+}
+
+function addPipe() {
+  score++;
+  if (score > 0)
+    labelScore.text = score;
+  else labelScore.text = 0;
+  var offset = 200 + Math.floor(Math.random() * 200);
+  var pipeUp = game.add.sprite(800, offset + 100, 'pipeUp');
+  var pipeDown = game.add.sprite(800, offset - 400, 'pipeDown');
 
   pipes.add(pipeUp);
   pipes.add(pipeDown);
+
+  game.physics.arcade.enable(pipeUp);
+  pipeUp.body.allowGravity = false;
+  pipeUp.body.immovable = true;
+  pipeUp.body.velocity.x = -200;
+  pipeUp.checkWorldBounds = true;
+  pipeUp.outOfBoundsKill = true;
+
+
+  game.physics.arcade.enable(pipeDown);
+  pipeDown.body.allowGravity = false;
+  pipeDown.body.immovable = true;
+  pipeDown.body.velocity.x = -200;
+  pipeDown.checkWorldBounds = true;
+  pipeDown.outOfBoundsKill = true;
+
 }
 
 function jump() {
-  bird.body.velocity.y = -400;
-  bird.animations.play('flap');
+  if (bird.alive) {
+    bird.body.velocity.y = -400;
+    bird.animations.play('flap');
+  }
 }
