@@ -1,11 +1,11 @@
-var game = new Phaser.Game(288,600, Phaser.AUTO, 'gameContainer', {
+var game = new Phaser.Game(800,600, Phaser.AUTO, 'gameContainer', {
   preload: preload,
   create: create,
   update: update,
   render: render
 })
 
-var bird, ground;
+var bird, ground,sky;
 
 function preload() {
 
@@ -19,16 +19,24 @@ function preload() {
 
 function create() {
   game.physics.startSystem(Phaser.Physics.ARCADE);
-  game.physics.arcade.gravity.y = 600;
+  game.physics.arcade.gravity.y = 100;
 
-  game.add.sprite(0,0,'sky');
-  ground = game.add.sprite(0,512,'ground');
+  sky = game.add.group();
+  sky.create(0,0,'sky');
+  sky.create(288,0,'sky');
+  sky.create(576,0,'sky');
+
+  ground = game.add.physicsGroup();
+  ground.create(0,512,'ground');
+  ground.create(300,512,'ground');
+  ground.create(600,512,'ground');
+  ground.setAll('body.allowGravity', false);
+  ground.setAll('body.immovable', true);
+
+
   bird = game.add.sprite(30, 300,'bird');
-  game.physics.arcade.enable([ground, bird]);
-
-
-  ground.body.allowGravity = false;
-  ground.body.immovable = true;
+  game.physics.arcade.enable(bird);
+  bird.body.gravity.y = 1000;
 
   bird.animations.add('flap',null, 10, false, true);
   bird.body.collideWorldBounds = true;
@@ -44,7 +52,7 @@ function update() {
 }
 
 function jump() {
-  bird.body.velocity.y = -300;
+  bird.body.velocity.y = -400;
   bird.animations.play('flap');
 }
 
