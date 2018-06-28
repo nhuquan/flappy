@@ -1,4 +1,7 @@
-var game = new Phaser.Game(800,600, Phaser.AUTO, 'gameContainer', {
+var gw = innerWidth * devicePixelRatio;
+var gh = innerHeight * devicePixelRatio;
+var ratio = devicePixelRatio;
+var game = new Phaser.Game(gw, gh, Phaser.AUTO, 'gameContainer', {
   preload: preload,
   create: create,
   update: update,
@@ -15,29 +18,33 @@ function preload() {
   game.load.image('pipeDown', 'asset/images/sprites/pipe-down.png');
   game.load.spritesheet('bird', 'asset/images/sprites/bird.png',34,24);
 
-
   game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+  game.scale.pageAlignHorizontally = true;
+  game.scale.pageAlignVertically = true;
 }
 
 function create() {
   game.physics.startSystem(Phaser.Physics.ARCADE);
-  game.physics.arcade.gravity.y = 100;
 
   sky = game.add.group();
-  sky.create(0,0,'sky');
-  sky.create(288,0,'sky');
-  sky.create(576,0,'sky');
+
+  sky.create(0,0,'sky')
+  //sky.create(288,0,'sky');
+  //sky.create(576,0,'sky');
+  sky.scale.setTo(ratio, ratio);
 
   ground = game.add.physicsGroup();
-  ground.create(0,512,'ground');
-  ground.create(300,512,'ground');
-  ground.create(600,512,'ground');
+  ground.create(0,gh,'ground');
+  ground.create(300,gh,'ground');
+  ground.create(600,gh,'ground');
   ground.setAll('body.allowGravity', false);
   ground.setAll('body.immovable', true);
+  ground.scale.setTo(ratio,ratio);
 
   bird = game.add.sprite(30, 300,'bird');
+  bird.scale.setTo(ratio,ratio);
   game.physics.arcade.enable(bird);
-  bird.body.gravity.y = 1000;
+  bird.body.gravity.y =  Math.floor(gh * 10);
 
   bird.animations.add('flap',null, 10, false, true);
   bird.body.collideWorldBounds = true;
@@ -98,10 +105,11 @@ function restartGame() {
 }
 
 function addPipe() {
-  var offset = 200 + Math.floor(Math.random() * 200);
-  var pipeUp = game.add.sprite(800, offset + 100, 'pipeUp');
-  var pipeDown = game.add.sprite(800, offset - 400, 'pipeDown');
-
+  var offset = 200 * ratio + Math.floor(Math.random() * 200 * ratio);
+  var pipeUp = game.add.sprite(gw, (gh - 320*ratio), 'pipeUp');
+  var pipeDown = game.add.sprite(gw, 0 , 'pipeDown');
+  pipeUp.scale.setTo(ratio, ratio);
+  pipeDown.scale.setTo(ratio, ratio);
   pipes.add(pipeUp);
   pipes.add(pipeDown);
 
@@ -124,7 +132,7 @@ function addPipe() {
 
 function jump() {
   if (bird.alive) {
-    bird.body.velocity.y = -400;
+    bird.body.velocity.y = 0 - 2 * Math.floor(gh);
     bird.animations.play('flap');
   }
 }
